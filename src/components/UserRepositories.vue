@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, Ref, ref } from 'vue';
 import { REPOSITORIES, LANGUAGES } from '../mock';
 
 export interface Repository {
@@ -47,19 +47,13 @@ interface Data {
   allLanguages: string[];
 }
 
+interface Props {
+  user?: string;
+}
+
 export default defineComponent({
   props: {
     user: { type: String }
-  },
-  data(): Data {
-    return {
-      repositories: [],
-      filters: {
-        languages: []
-      },
-      searchQuery: '',
-      allLanguages: LANGUAGES
-    };
   },
   computed: {
     filteredRepositories(): Repository[] {
@@ -108,6 +102,15 @@ export default defineComponent({
   mounted() {
     this.fetchUserRepositories();
     this.updateFilters({ languages: this.allLanguages });
+  },
+  setup(props: Props) {
+    const repositories: Ref<Repository[]> = ref([]);
+    const filters: Ref<Filters> = ref({
+      languages: []
+    });
+    const searchQuery = ref('');
+    const allLanguages = LANGUAGES;
+    return { repositories, filters, searchQuery, allLanguages };
   }
 });
 </script>
