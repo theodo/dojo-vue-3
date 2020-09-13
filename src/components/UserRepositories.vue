@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, Ref, ref } from 'vue';
+import { computed, defineComponent, Ref, ref, watch } from 'vue';
 import { REPOSITORIES, LANGUAGES } from '../mock';
 
 export interface Repository {
@@ -54,9 +54,6 @@ interface Props {
 export default defineComponent({
   props: {
     user: { type: String }
-  },
-  watch: {
-    user: 'fetchUserRepositories'
   },
   mounted() {
     this.fetchUserRepositories();
@@ -112,6 +109,8 @@ export default defineComponent({
         repositoriesMatchingSearchQuery.value.includes(repository)
       )
     );
+
+    watch(props, fetchUserRepositories);
 
     return {
       repositories,
