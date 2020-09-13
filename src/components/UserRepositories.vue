@@ -25,7 +25,15 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, Ref, ref, watch } from 'vue';
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  Ref,
+  ref,
+  watch,
+  toRef
+} from 'vue';
 import { REPOSITORIES, LANGUAGES } from '../mock';
 
 export interface Repository {
@@ -54,10 +62,6 @@ interface Props {
 export default defineComponent({
   props: {
     user: { type: String }
-  },
-  mounted() {
-    this.fetchUserRepositories();
-    this.updateFilters({ languages: this.allLanguages });
   },
   setup(props: Props) {
     const repositories: Ref<Repository[]> = ref([]);
@@ -110,7 +114,12 @@ export default defineComponent({
       )
     );
 
-    watch(props, fetchUserRepositories);
+    watch(toRef(props, 'user'), fetchUserRepositories);
+
+    onMounted(() => {
+      fetchUserRepositories();
+      updateFilters({ languages: allLanguages });
+    });
 
     return {
       repositories,
