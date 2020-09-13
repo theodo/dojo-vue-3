@@ -1,16 +1,27 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+  <div class="select-user">
+    <label>User</label>
+    <select v-model="user">
+      <option value="buefy">Buefy</option>
+      <option value="vuetifyjs">Vuetify</option>
+    </select>
+  </div>
+  <user-repositories :user="user" />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import HelloWorld from "./components/HelloWorld.vue";
+import { defineComponent } from 'vue';
+import UserRepositories from './components/UserRepositories.vue';
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
   components: {
-    HelloWorld
+    UserRepositories
+  },
+  data() {
+    return {
+      user: 'buefy'
+    };
   }
 });
 </script>
@@ -23,5 +34,13 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+.select-user {
+  text-align: left;
+  padding-bottom: 1rem;
+}
+.select-user label {
+  padding-right: 1rem;
 }
 </style>
