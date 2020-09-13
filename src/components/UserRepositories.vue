@@ -58,28 +58,6 @@ export default defineComponent({
   watch: {
     user: 'fetchUserRepositories'
   },
-  methods: {
-    fetchUserRepositories() {
-      this.repositories = REPOSITORIES.filter(
-        (repository) => repository.author === this.user
-      );
-    },
-    updateFilters(filters: Filters) {
-      this.filters = filters;
-    },
-    toggleLanguage(language: string) {
-      const includesLang = this.filters.languages.includes(language);
-      if (includesLang) {
-        this.filters = {
-          languages: this.filters.languages.filter((lang) => lang !== language)
-        };
-      } else {
-        this.filters = {
-          languages: [...this.filters.languages, language]
-        };
-      }
-    }
-  },
   mounted() {
     this.fetchUserRepositories();
     this.updateFilters({ languages: this.allLanguages });
@@ -87,6 +65,12 @@ export default defineComponent({
   setup(props: Props) {
     const repositories: Ref<Repository[]> = ref([]);
     const allLanguages = LANGUAGES;
+
+    const fetchUserRepositories = () => {
+      repositories.value = REPOSITORIES.filter(
+        (repository) => repository.author === props.user
+      );
+    };
 
     // Filters
     const filters: Ref<Filters> = ref({
@@ -99,6 +83,9 @@ export default defineComponent({
           : true
       )
     );
+    const updateFilters = (newFilters: Filters) => {
+      filters.value = newFilters;
+    };
 
     // Search
     const searchQuery = ref('');
@@ -107,6 +94,18 @@ export default defineComponent({
         repository.title.includes(searchQuery.value)
       )
     );
+    const toggleLanguage = (language: string) => {
+      const includesLang = filters.value.languages.includes(language);
+      if (includesLang) {
+        filters.value = {
+          languages: filters.value.languages.filter((lang) => lang !== language)
+        };
+      } else {
+        filters.value = {
+          languages: [...filters.value.languages, language]
+        };
+      }
+    };
 
     const displayedRepositories = computed(() =>
       filteredRepositories.value.filter((repository) =>
@@ -117,8 +116,11 @@ export default defineComponent({
     return {
       repositories,
       allLanguages,
+      fetchUserRepositories,
       filters,
       filteredRepositories,
+      updateFilters,
+      toggleLanguage,
       searchQuery,
       repositoriesMatchingSearchQuery,
       displayedRepositories
