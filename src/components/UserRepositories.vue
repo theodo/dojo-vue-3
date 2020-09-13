@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref, ref } from 'vue';
+import { computed, defineComponent, Ref, ref } from 'vue';
 import { REPOSITORIES, LANGUAGES } from '../mock';
 
 export interface Repository {
@@ -54,25 +54,6 @@ interface Props {
 export default defineComponent({
   props: {
     user: { type: String }
-  },
-  computed: {
-    filteredRepositories(): Repository[] {
-      return this.repositories.filter((repository) =>
-        this.filters.languages
-          ? this.filters.languages.includes(repository.language)
-          : true
-      );
-    },
-    repositoriesMatchingSearchQuery(): Repository[] {
-      return this.repositories.filter((repository) =>
-        repository.title.includes(this.searchQuery)
-      );
-    },
-    displayedRepositories(): Repository[] {
-      return this.filteredRepositories.filter((repository) =>
-        this.repositoriesMatchingSearchQuery.includes(repository)
-      );
-    }
   },
   watch: {
     user: 'fetchUserRepositories'
@@ -105,12 +86,43 @@ export default defineComponent({
   },
   setup(props: Props) {
     const repositories: Ref<Repository[]> = ref([]);
+    const allLanguages = LANGUAGES;
+
+    // Filters
     const filters: Ref<Filters> = ref({
       languages: []
     });
+    const filteredRepositories = computed(() =>
+      repositories.value.filter((repository) =>
+        filters.value.languages
+          ? filters.value.languages.includes(repository.language)
+          : true
+      )
+    );
+
+    // Search
     const searchQuery = ref('');
-    const allLanguages = LANGUAGES;
-    return { repositories, filters, searchQuery, allLanguages };
+    const repositoriesMatchingSearchQuery = computed(() =>
+      repositories.value.filter((repository) =>
+        repository.title.includes(searchQuery.value)
+      )
+    );
+
+    const displayedRepositories = computed(() =>
+      filteredRepositories.value.filter((repository) =>
+        repositoriesMatchingSearchQuery.value.includes(repository)
+      )
+    );
+
+    return {
+      repositories,
+      allLanguages,
+      filters,
+      filteredRepositories,
+      searchQuery,
+      repositoriesMatchingSearchQuery,
+      displayedRepositories
+    };
   }
 });
 </script>
