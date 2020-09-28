@@ -15,7 +15,7 @@
     </template>
   </div>
   <div
-    v-for="repository in displayedRepositories"
+    v-for="repository in repositories"
     :key="repository.id"
     class="repository-card"
   >
@@ -25,113 +25,44 @@
 </template>
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  onMounted,
-  Ref,
-  ref,
-  watch,
-  toRef
-} from 'vue';
-import { REPOSITORIES, LANGUAGES } from '../mock';
-
-export interface Repository {
-  id: string;
-  title: string;
-  description: string;
-  language: string;
-  author: string;
-}
-
-export interface Filters {
-  languages: string[];
-}
-
-interface Data {
-  repositories: Repository[];
-  filters: Filters;
-  searchQuery: string;
-  allLanguages: string[];
-}
+import { defineComponent, toRef } from 'vue';
+import { useRepositoriesNameSearch } from './composables/useRepositoriesNameSearch';
+import { useUserRepositories } from './composables/useUserRepositories';
+import { useRepositoryFilters } from './composables/useRepositoryFilters';
+import { LANGUAGES } from '@/mock';
 
 interface Props {
-  user?: string;
+  user: string;
 }
 
 export default defineComponent({
   props: {
-    user: { type: String }
+    user: { type: String, required: true }
   },
   setup(props: Props) {
-    const repositories: Ref<Repository[]> = ref([]);
-    const allLanguages = LANGUAGES;
+    const { repositories } = useUserRepositories(toRef(props, 'user'));
 
-    const fetchUserRepositories = () => {
-      repositories.value = REPOSITORIES.filter(
-        (repository) => repository.author === props.user
-      );
-    };
+    const {
+      filteredRepositories,
+      updateFilters,
+      filters,
+      toggleLanguage
+    } = useRepositoryFilters(repositories);
 
-    // Filters
-    const filters: Ref<Filters> = ref({
-      languages: []
-    });
-    const filteredRepositories = computed(() =>
-      repositories.value.filter((repository) =>
-        filters.value.languages
-          ? filters.value.languages.includes(repository.language)
-          : true
-      )
-    );
-    const updateFilters = (newFilters: Filters) => {
-      filters.value = newFilters;
-    };
-
-    // Search
-    const searchQuery = ref('');
-    const repositoriesMatchingSearchQuery = computed(() =>
-      repositories.value.filter((repository) =>
-        repository.title.includes(searchQuery.value)
-      )
-    );
-    const toggleLanguage = (language: string) => {
-      const includesLang = filters.value.languages.includes(language);
-      if (includesLang) {
-        filters.value = {
-          languages: filters.value.languages.filter((lang) => lang !== language)
-        };
-      } else {
-        filters.value = {
-          languages: [...filters.value.languages, language]
-        };
-      }
-    };
-
-    const displayedRepositories = computed(() =>
-      filteredRepositories.value.filter((repository) =>
-        repositoriesMatchingSearchQuery.value.includes(repository)
-      )
-    );
-
-    watch(toRef(props, 'user'), fetchUserRepositories);
-
-    onMounted(() => {
-      fetchUserRepositories();
-      updateFilters({ languages: allLanguages });
-    });
+    const {
+      searchQuery,
+      repositoriesMatchingSearchQuery
+    } = useRepositoriesNameSearch(filteredRepositories);
 
     return {
-      repositories,
-      allLanguages,
-      fetchUserRepositories,
+      repositories: repositoriesMatchingSearchQuery,
+      allLanguages: LANGUAGES,
       filters,
       filteredRepositories,
       updateFilters,
       toggleLanguage,
       searchQuery,
-      repositoriesMatchingSearchQuery,
-      displayedRepositories
+      repositoriesMatchingSearchQuery
     };
   }
 });
